@@ -1,58 +1,19 @@
-
-
 <?php
-function tidy_html($input_string) {
-         
-	$config = array('output-html'   => true,'indent' => true,'wrap'=> 800); 
-            
-    // Detect if Tidy is in configured    
-    if( function_exists('tidy_get_release') ) {
-        $tidy = new tidy;
-        $tidy->parseString($input_string, $config, 'raw');
-        $tidy->cleanRepair();
-        $cleaned_html  = tidy_get_output($tidy); 
-        } 
-	else {
-        # Tidy not configured for this Server
-        $cleaned_html = $input_string;
-	}
-    return $cleaned_html;
-}
 
-function getFromPage($webAddress,$path){
-	$source = file_get_contents($webAddress); //download the page 
-	$clean_source = tidy_html($source);
-	$doc = new DOMDocument;
+include('simple_html_dom.php');
 
-	// suppress errors
-	libxml_use_internal_errors(true);
-
-	// load the html source from a string
-	$doc->loadHTML($clean_source);
-	$xpath = new DOMXPath($doc);
-	$data="";
-	$nodelist = $xpath->query($path);
-	$node_counts = $nodelist->length; // count how many nodes returned
-	if ($node_counts) { // it will be true if the count is more than 0
-		foreach ($nodelist as $element) {
-           $data= $data.$element->nodeValue . "\n";
-		}
-	}
-	return $data;
-	
-}
  
-$vidID = $_GET['id'];
+$vidID = 'pq1iaxsjujpwipwhf6qzn58y6h';
 
-$link1 = getFromPage("https://www.myvi.tv/embed/".$vidID,"/html/body/script[2]/text()");
-$json = urldecode($link1);
+$source = file_get_contents("https://www.myvi.tv/embed/".$vidID);
 
-$link2 = substr($json, 39 , strlen($json));
+preg_match_all('/https.*u0026tp/', $source, $output_array);
 
-$url = substr($link2, 0, strpos($link2, "\u0026"));
+$text = $output_array[0][0];
 
-echo $url;
-//header('Location:' .$url);
+$json = urldecode($text);
 
+$url = substr($json, 0, strpos($json, "\u0026"));
 
+echo $url
 ?>
